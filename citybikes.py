@@ -11,18 +11,24 @@
 # http_post() makes a HTTP POST request to a given server.
 from requests import post as http_post
 
-
 # Main.
 
 # Temporary parameters.
 query_url = "https://api.digitransit.fi/routing/v1/routers/hsl/index/graphql"
+query_values = ["stationId", "name", "state", "bikesAvailable", "spacesAvailable", "allowDropoff"]
 stations = ["001", "002"]
 
-# The API only allows to query one station at a time. Great...
+# Create a string from the query values and an empty list for storing the replies.
+value_string = " ".join(query_values)
+replies = []
+# The API only allows to query one station at a time. So let's query one station at a time, then.
 for station in stations:
-	query_string = "{bikeRentalStation(id: \"%s\") {stationId name state bikesAvailable spacesAvailable allowDropoff}}" %(station)
+	# Query the station.
+	query_string = "{bikeRentalStation(id: \"%s\") {%s}}" %(station, value_string)
 	reply = http_post(query_url, json={"query": query_string})
-	print(reply.json())
+	# Store the reply.
+	reply_json = reply.json()
+	replies.append(reply_json["data"]["bikeRentalStation"])
 
 # "state": "Station on",
 # "state": "Station off",
