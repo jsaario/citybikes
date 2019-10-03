@@ -47,6 +47,39 @@ def parse_replies(replies):
 	# All done, return.
 	return station_data
 
+# Prints output.
+def print_output(station_data):
+	# Create the output to be printed.
+	output = []
+	# Get the padding lengths.
+	paddings = {}
+	for station_id in station_data.keys():
+		for key in station_data[station_id].keys():
+			value_length = len(str(station_data[station_id][key]))
+			if value_length > paddings.get(key, 0):
+				paddings.update({key: value_length})
+	# Format the output.
+	for station_id in station_data.keys():
+		# Get the values.
+		station_name = station_data[station_id].get("name", "unknown")
+		station_available = station_data[station_id].get("available", False)
+		station_size = str(station_data[station_id].get("size", 0))
+		station_bikes = str(station_data[station_id].get("bikes", 0))
+		# Check the station availability.
+		if not station_available:
+			station_size = "0"
+			station_bikes = "0"
+		# Create the output line and add it to the output.
+		output_line = station_name.ljust(paddings.get("name", 0)) + "    " \
+			+ station_bikes.rjust(paddings.get("bikes", 0)) + "/" \
+			+ station_size.rjust(paddings.get("size", 0))
+		output.append(output_line)
+	# Print the output.
+	for line in output:
+		print(line)
+	# All done, return.
+	return None
+
 # Queries the given URL for the bikes.
 def query_bikes(url, values, stations):
 	# Create the output.
@@ -70,14 +103,14 @@ def query_bikes(url, values, stations):
 # Temporary parameters.
 query_url = "https://api.digitransit.fi/routing/v1/routers/hsl/index/graphql"
 query_values = ["stationId", "name", "state", "bikesAvailable", "spacesAvailable", "allowDropoff"]
-query_stations = ["001", "002"]
+query_stations = ["001", "002", "003", "004", "005", "006", "007", "008", "009"]
 
 # Query the HKL API and parse the replies.
 query_replies = query_bikes(query_url, query_values, query_stations)
 station_data = parse_replies(query_replies)
 
-# Next: Output.
-print(station_data)
+# Print the output.
+print_output(station_data)
 
 # All done, exit.
 exit(0)
