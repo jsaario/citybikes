@@ -78,10 +78,12 @@ def print_output(station_data, hide_empty=False, hide_unavailable=False):
 		# Check if empty stations should be printed or not.
 		if hide_empty and station_bikes == "0":
 			continue
-		# Create the output line and add it to the output.
-		output_line = station_name.ljust(paddings.get("name", 0)) + "    " \
-			+ station_bikes.rjust(paddings.get("bikes", 0)) + "/" \
-			+ station_size.rjust(paddings.get("size", 0))
+		# Padd the output values.
+		station_name = station_name.ljust(paddings.get("name", 0))
+		station_bikes = station_bikes.rjust(paddings.get("bikes", 0))
+		station_size = station_size.rjust(paddings.get("size", 0))
+		# Create a new output line and add it to the output.
+		output_line = "{}    {}/{}".format(station_name, station_bikes, station_size)
 		output.append(output_line)
 	# Print the output.
 	for line in output:
