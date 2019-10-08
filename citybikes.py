@@ -78,7 +78,7 @@ def print_output(station_data, hide_empty=False, hide_unavailable=False):
 		# Check if empty stations should be printed or not.
 		if hide_empty and station_bikes == "0":
 			continue
-		# Padd the output values.
+		# Pad the output values.
 		station_name = station_name.ljust(paddings.get("name", 0))
 		station_bikes = station_bikes.rjust(paddings.get("bikes", 0))
 		station_size = station_size.rjust(paddings.get("size", 0))
