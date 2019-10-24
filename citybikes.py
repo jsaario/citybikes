@@ -16,6 +16,38 @@ from requests import post as http_post
 
 # Functions.
 
+# Queries the HSL API for station information.
+# If station ID is given, extended information for that station is returned.
+# If no ID is given, limited information for all stations is returned.
+def query_stations(station_id=None):
+	# Set the query url. This only needs to be changed if the API changes.
+	url = "https://api.digitransit.fi/routing/v1/routers/hsl/index/graphql"
+	# Create the output.
+	station_data = []
+	# Check if one station or all stations should be queried.
+	if station_id:
+		# Master keyword used in retrieving the data.
+		keyword = "bikeRentalStation"
+		# Values to be retrieved.
+		values = "stationId name state bikesAvailable spacesAvailable allowDropoff"
+		# String used in the query. The API requires curly spaces in the query string, thus making .format() syntax very, very ugly.
+		query = "{{{keyword}(id: \"{station}\") {{{values}}}}}".format(keyword=keyword, station=station_id, values=values)
+	else:
+		# Master keyword used in retrieving the data.
+		keyword = "bikeRentalStations"
+		# Values to be retrieved.
+		values = "stationId name"
+		# String used in the query. The API requires curly spaces in the query string, thus making .format() syntax very, very ugly.
+		query = "{{{keyword} {{{values}}}}}".format(keyword=keyword, values=values)
+	# Query the API.
+	reply = http_post(url, json={"query": query})
+	# Get the JSON-formatted version of the reply and extract the station information.
+	reply_json = reply.json()
+	station_data = reply_json["data"][keyword]
+	# All done, return.
+	return station_data
+
+
 # Parses the output of query_bikes and returns a list.
 def parse_replies(replies):
 	# Create the output.
@@ -92,7 +124,9 @@ def print_output(station_data, hide_empty=False, hide_unavailable=False):
 	return None
 
 # Queries the given URL for the bikes.
-def query_bikes(url, values, stations):
+def query_bikes_old(stations):
+	url = "https://api.digitransit.fi/routing/v1/routers/hsl/index/graphql"
+	values = ["stationId", "name", "state", "bikesAvailable", "spacesAvailable", "allowDropoff"]
 	# Create the output.
 	replies = []
 	# Create a string from the query value list.
@@ -125,15 +159,11 @@ argument_parser.add_argument("--hide-unavailable", action="store_true", help="Hi
 # Parse the arguments.
 arguments = argument_parser.parse_args()
 
-# Fixed query parameters. These only need to be changed if there are changes in the API.
-query_url = "https://api.digitransit.fi/routing/v1/routers/hsl/index/graphql"
-query_values = ["stationId", "name", "state", "bikesAvailable", "spacesAvailable", "allowDropoff"]
-
 # Get the list of stations.
-query_stations = arguments.stations
+stations = arguments.stations
 
 # Query the HKL API and parse the replies.
-query_replies = query_bikes(query_url, query_values, query_stations)
+query_replies = [query_stations(station_id=station) for station in stations]
 station_data = parse_replies(query_replies)
 
 # Print the output.
