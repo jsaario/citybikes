@@ -54,6 +54,51 @@ def get_station_data(stations):
 	# All done, return.
 	return station_data
 
+# Returns the station IDs for given stations. Input can be the name or the ID of the station, or the integer of the ID.
+# Some of the station IDs contain leading zeroes, while others do not. This is a feature of the API.
+# This routine is needed to mitigate the issue and allow invalid station IDs to be given as import.
+def get_station_ids(stations):
+	# Create the output.
+	station_ids = []
+	# Query the API for the station information. As we give no station ID, this will return all stations.
+	station_data = query_stations()
+	# Create temporary dictionaries.
+	stations_by_name = {}
+	stations_by_integer = {}
+	# Process the queried data.
+	for station in station_data:
+		# Get the name and the ID for this station.
+		station_name = station.get("name", None)
+		station_id = station.get("stationId", None)
+		# Check that the data is sane.
+		if station_name is None or station_id is None:
+			continue
+		# Check that the station_id is a number and convert it to an integer.
+		if not station_id.isdecimal():
+			continue
+		station_integer = int(station_id)
+		# Add the values to the respective dictionaries.
+		stations_by_name.update({station_name: station_id})
+		stations_by_integer.update({station_integer: station_id})
+	# Process the input station list.
+	for station in stations:
+		# Check the type of identifier given. All input is assumed to be strings!
+		if station.isdecimal():		
+			# The string contains a numerical value. It is assumed to be an ID.
+			station_integer = int(station)
+			station_id = stations_by_integer.get(station_integer, None)
+		else:
+			# The string contains non-decimal characters. It is assumed to be a name.
+			station_name = station
+			station_id = stations_by_name.get(station_name, None)
+		# Check the station ID and append it.
+		if not station_id:
+			print("Warning: Station '{station}' not found.".format(station=station))
+			continue
+		station_ids.append(station_id)
+	# All done, return.
+	return station_ids
+
 # Prints output.
 def print_output(station_data, hide_empty=False, hide_unavailable=False):
 	# Create the output to be printed.
@@ -137,7 +182,8 @@ argument_parser.add_argument("--hide-unavailable", action="store_true", help="Hi
 arguments = argument_parser.parse_args()
 
 # Get the list of stations.
-stations = arguments.stations
+stations = get_station_ids(arguments.stations)
+#stations = arguments.stations
 
 # Query the HKL API and parse the replies.
 station_data = get_station_data(stations)
