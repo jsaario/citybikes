@@ -83,7 +83,7 @@ def get_station_ids(stations):
 	# Process the input station list.
 	for station in stations:
 		# Check the type of identifier given. All input is assumed to be strings!
-		if station.isdecimal():		
+		if station.isdecimal():
 			# The string contains a numerical value. It is assumed to be an ID.
 			station_integer = int(station)
 			station_id = stations_by_integer.get(station_integer, None)
@@ -110,6 +110,11 @@ def print_output(station_data, hide_empty=False, hide_unavailable=False):
 			value_length = len(str(station_data[station_id][key]))
 			if value_length > paddings.get(key, 0):
 				paddings.update({key: value_length})
+	# Create a header line for the output.
+	header_name = "Station".ljust(paddings.get("name", 0))
+	header_bikes = "Bikes"
+	output_line = "{}    {}".format(header_name, header_bikes)
+	output.append(output_line)
 	# Format the output.
 	for station_id in station_data.keys():
 		# Get the values.
@@ -183,7 +188,6 @@ arguments = argument_parser.parse_args()
 
 # Get the list of stations.
 stations = get_station_ids(arguments.stations)
-#stations = arguments.stations
 
 # Query the HKL API and parse the replies.
 station_data = get_station_data(stations)
